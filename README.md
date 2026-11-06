@@ -6,6 +6,14 @@
 - 程序名：`微信聊天记录导出`
 - 主程序入口：`main.py`
 - 打包产物：`dist\微信聊天记录导出.exe`（单文件，约 53 MB）
+- 微信4.0使用SQLCipher 4加密本地数据库：
+
+    加密算法：AES-256-CBC + HMAC-SHA512
+    KDF：PBKDF2-HMAC-SHA512，迭代次数 256,000 次
+    页面大小：4096 字节，保留 = 80 (IV 16 + HMAC 64)
+    每个数据库都有独立的 salt 和 enc_key
+    WCDB (微信的 SQLCipher 封装) 会在进程内存中存储派生后的原始密钥，格式为x'<64hex_enc_key><32hex_salt>'。
+- 本工具通过扫描进程内存中的这种模式，匹配数据库文件的盐，并通过 HMAC 验证来提取正确的密钥。
 
 ---
 
@@ -39,13 +47,7 @@ openpyxl>=3.1
 zstandard>=0.22
 pycryptodome>=3.20
 ```
-微信4.0使用SQLCipher 4加密本地数据库：
 
-加密算法：AES-256-CBC + HMAC-SHA512
-KDF：PBKDF2-HMAC-SHA512，迭代次数 256,000 次
-页面大小：4096 字节，保留 = 80 (IV 16 + HMAC 64)
-每个数据库都有独立的 salt 和 enc_key
-WCDB (微信的 SQLCipher 封装) 会在进程内存中存储派生后的原始密钥，格式为x'<64hex_enc_key><32hex_salt>'。本工具通过扫描进程内存中的这种模式，匹配数据库文件的盐，并通过 HMAC 验证来提取正确的密钥。
 ---
 
 ## 三、快速开始
